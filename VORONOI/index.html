@@ -14,6 +14,14 @@
     body{
         overflow: hidden;
     }
+
+    .mask {
+        position: absolute;
+        width: 100vh;
+        height: 100vh;
+        top: 0;
+        left: 0;
+    }
 </style>
 <body>
   <div id="container"></div>
@@ -27,7 +35,7 @@
     #ifdef GL_ES
     precision mediump float;
     #endif
-    
+     
     #define PI 3.14159265359
     #define TWO_PI 6.28318530718
     
@@ -37,29 +45,72 @@
     
     // Reference to
     // http://thndl.com/square-shaped-shaders.html
+
+    vec2 N22(vec2 p) {
+        vec3 a = fract(p.xyx*vec3(123.34, 234.34, 345.65));
+
+        a += dot(a, a+34.45);
+
+        return fract(vec2(a.x*a.y, a.y*a.z));
+    }
     
     void main(){
-      vec2 uv = (gl_FragCoord.xy-.5*u_resolution.xy)/u_resolution.y;
+      vec2 uv = (2.*gl_FragCoord.xy - u_resolution.xy) / u_resolution.y;
       
+      float m = 0.;
+      float t = u_time / 2.;
+
+      float minDist = 1.;
+      float cellIndex = 0.;
+
       vec3 col = vec3(0);
 
-      // Figuring out things
-      float a = atan(uv.x,uv.y)+PI;
-      float r = TWO_PI/float(3);
-
-      float time = u_time/2.;
-
-      // gv = grid uv
-      vec2 gv = fract( uv*5. )-.5;
-
-      // cos(floor(.5+a/r)*r-a)*length(uv);
-      float d = cos(floor(.5+a/r)*r-a)*length(uv)*2.;
-      float m = smoothstep(.4,.3, d);
-      
-      col.rg = gv;
-      col += m;
+      if(false) {
+        for(float i=0.; i<50.; i++) {
+            vec2 n = N22(vec2(i));
+            vec2 p = sin(n*t);
+            
+            float d = length(uv-p);
+            m += smoothstep(.02, .01, d);
     
-      gl_FragColor = vec4(col,1.0);
+            if(d<minDist) {
+                minDist = d;
+                cellIndex = i;
+            }
+          }
+          
+          col = vec3(cellIndex/50.);
+
+      } else {
+         uv *= 3.;
+         
+         vec2 gv = fract(uv) - .5;
+         vec2 id = floor(uv);
+         vec2 cid = vec2(0);
+
+         for(float y=-1.; y<=1.; y++) {
+             for(float x=-1.; x<=1.; x++) {
+                 vec2 offs = vec2(x, y);
+
+                 vec2 n = N22(id+offs);
+                 vec2 p = offs+sin(n*t)*.5;
+                 float d = length(gv-p);
+
+                 if(d<minDist) {
+                     minDist = d;
+                     cid = id+offs;
+                 }
+             }
+         }
+
+         col = vec3(minDist);
+         //col = vec2(cid);
+      }
+      
+
+      
+
+      gl_FragColor = vec4(col, 1.0);
     }
   </script>
   <script>
@@ -125,5 +176,15 @@
           renderer.render( scene, camera );
       }
   </script>
+
+  <svg class="mask" version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="800px" height="800px"
+  viewBox="0 0 800 800" style="enable-background:new 0 0 800 800;">
+    <style type="text/css">
+        .st0 {
+        fill: #FFFFFF;
+        }
+    </style>
+    <path class="st0" d="M0,0v800h800V0H0z M73.2,680.2l326.8-566l326.8,566H73.2z" />
+    </svg>
 </body>
 </html>

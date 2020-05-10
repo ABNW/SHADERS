@@ -14,10 +14,17 @@
     body{
         overflow: hidden;
     }
+    .mask {
+        position: absolute;
+        width: 100vh;
+        height: 100vh;
+        top: 0;
+        left: 0;
+    }
 </style>
 <body>
   <div id="container"></div>
-  <script src="./js/three.min.js"></script>
+  <script src="js/three.min.js"></script>
   <script id="vertexShader" type="x-shader/x-vertex">
       void main() {
           gl_Position = vec4( position, 1.0 );
@@ -27,7 +34,7 @@
     #ifdef GL_ES
     precision mediump float;
     #endif
-    
+     
     #define PI 3.14159265359
     #define TWO_PI 6.28318530718
     
@@ -39,27 +46,25 @@
     // http://thndl.com/square-shaped-shaders.html
     
     void main(){
-      vec2 uv = (gl_FragCoord.xy-.5*u_resolution.xy)/u_resolution.y;
       
-      vec3 col = vec3(0);
-
-      // Figuring out things
-      float a = atan(uv.x,uv.y)+PI;
-      float r = TWO_PI/float(3);
-
-      float time = u_time/2.;
-
-      // gv = grid uv
-      vec2 gv = fract( uv*5. )-.5;
-
-      // cos(floor(.5+a/r)*r-a)*length(uv);
-      float d = cos(floor(.5+a/r)*r-a)*length(uv)*2.;
-      float m = smoothstep(.4,.3, d);
+      // Range 0 <> 1.
+      vec2 uv = gl_FragCoord.xy/u_resolution.xy;
       
-      col.rg = gv;
-      col += m;
-    
-      gl_FragColor = vec4(col,1.0);
+      // New Range -.5 <> .5
+      uv -= .5;
+
+      // Removing distortion.
+      uv.x *= u_resolution.x/u_resolution.y;
+
+      //distance from 0,0;
+      float d = sin(u_time * length(uv));
+      
+      // Radius of our circle;
+      float r = .5;
+
+      float c = smoothstep(r, r-0.05, d);
+
+      gl_FragColor = vec4(vec3(c), 1.0);
     }
   </script>
   <script>
@@ -125,5 +130,14 @@
           renderer.render( scene, camera );
       }
   </script>
+    <!-- <svg class="mask" version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="800px" height="800px"
+viewBox="0 0 800 800" style="enable-background:new 0 0 800 800;">
+    <style type="text/css">
+        .st0 {
+        fill: #FFFFFF;
+        }
+    </style>
+    <path class="st0" d="M0,0v800h800V0H0z M73.2,680.2l326.8-566l326.8,566H73.2z" />
+    </svg> -->
 </body>
 </html>

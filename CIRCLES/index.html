@@ -41,25 +41,34 @@
     void main(){
       vec2 uv = (gl_FragCoord.xy-.5*u_resolution.xy)/u_resolution.y;
       
-      vec3 col = vec3(0);
+      vec3 col = vec3(0.5);
 
       // Figuring out things
-      float a = atan(uv.x,uv.y)+PI;
+      //float a = atan(uv.x,uv.y)+PI;
       float r = TWO_PI/float(3);
 
       float time = u_time/2.;
 
       // gv = grid uv
-      vec2 gv = fract( uv*5. )-.5;
+      vec2 gv = fract( uv*5. )-.45;
+      //float a = atan(gv.x,gv.y)+PI*sin(time+offs.x);
 
-      // cos(floor(.5+a/r)*r-a)*length(uv);
-      float d = cos(floor(.5+a/r)*r-a)*length(uv)*2.;
-      float m = smoothstep(.4,.3, d);
+      float m = 0.;
+
+      for (float y=-1.; y<=1.; y++) {
+          for(float x=-1.; x<=1.; x++) {
+              vec2 offs = vec2(x, y);
+              float a = atan(gv.x,gv.y)+PI;
+              float d = (cos(floor(.5+a/r)*r-a)*length(gv+offs)*2.);
+              float r = mix(.25, .7, sin(time+length(uv)*8.)*.5+.5);
+              m += smoothstep(r, r*.9, d);
+          }
+      }
       
-      col.rg = gv;
+      col.rg = gv*sin(time+length(uv));
       col += m;
     
-      gl_FragColor = vec4(col,1.0);
+      gl_FragColor = vec4(col,0);
     }
   </script>
   <script>
