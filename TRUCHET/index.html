@@ -59,20 +59,30 @@
       
       float n = Hash21(id); // return random number between 0 & 1
       
-      float width = .1;
+      float width = .15;
       
+      // if(n < .5){
+      //    gv.x *= sin(u_time*0.2)*-1.;
+      // } else {
+      //  gv.y *= sin(u_time*0.2);
+      // }
+
+      if(n < .5) gv.x *= -1.;
+
       // we abs the value to make sure we only getting postive numbers, not negative
-      if(n < .5) {
-          gv.x *= -1.;
-      }
+      float d = abs(abs(gv.x + gv.y)-.5);
 
-      float mask = smoothstep(.01, -.01,abs(gv.x + gv.y) -width);
-    
+      d = length(gv-vec2(.5))-.5;
+      float mask = smoothstep(.01, -.01, abs(d)-width);
+
+      d = length(gv-vec2(-.5))-.5;
+      mask += smoothstep(.01, -.01, abs(d)-width);
+      
       col += mask;
-      // col.rg += id*.2;
-      //col += n;
+      //col.rg += id*.2;
+      // col += n;
 
-      // if(gv.x > .49 || gv.y > .49) col = vec3(1,1,1);      
+      //if(gv.x > .49 || gv.y > .49) col = vec3(1,1,1);      
 
       gl_FragColor = vec4(col, 0);
     }
