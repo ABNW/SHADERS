@@ -14,13 +14,6 @@
     body{
         overflow: hidden;
     }
-    .mask {
-        position: absolute;
-        width: 100vh;
-        height: 100vh;
-        top: 0;
-        left: 0;
-    }
 </style>
 <body>
   <div id="container"></div>
@@ -44,27 +37,25 @@
     
     // Reference to
     // http://thndl.com/square-shaped-shaders.html
+
+    float HexDist(vec2 p) {
+        p = abs(p);
+        float c = dot(p, normalize(vec2(1,1.73)));
+        c = max(c, p.x);
+
+        return c;
+    }
     
     void main(){
+      vec2 uv = (gl_FragCoord.xy-.5*u_resolution.xy)/u_resolution.y;
       
-      // Range 0 <> 1.
-      vec2 uv = gl_FragCoord.xy/u_resolution.xy;
+      vec3 col = vec3(0);
       
-      // New Range -.5 <> .5
-      uv -= .5;
+      //col += step(HexDist(uv), .2);
 
-      // Removing distortion.
-      uv.x *= u_resolution.x/u_resolution.y;
+      col += sin(HexDist(uv)*10.+u_time);
 
-      //distance from 0,0;
-      float d = sin((u_time + length(uv)) * u_time);
-      
-      // Radius of our circle;
-      float r = .5;
-
-      float c = smoothstep(r, r-0.05, d);
-
-      gl_FragColor = vec4(vec3(c), 1.0);
+      gl_FragColor = vec4(col, 1.0);
     }
   </script>
   <script>
@@ -130,14 +121,5 @@
           renderer.render( scene, camera );
       }
   </script>
-    <!-- <svg class="mask" version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="800px" height="800px"
-viewBox="0 0 800 800" style="enable-background:new 0 0 800 800;">
-    <style type="text/css">
-        .st0 {
-        fill: #FFFFFF;
-        }
-    </style>
-    <path class="st0" d="M0,0v800h800V0H0z M73.2,680.2l326.8-566l326.8,566H73.2z" />
-    </svg> -->
 </body>
 </html>
